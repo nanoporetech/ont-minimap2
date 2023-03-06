@@ -1,28 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(minimap2 VERSION 2.24.0 LANGUAGES C)
+project(minimap2 VERSION 2.22.0 LANGUAGES C)
 
 option(ONT_MM2_EXE "Build minimap2 exe" OFF)
 
-find_package(Git QUIET)
-if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-        
-  if(GIT_SUBMODULE)
-    message(STATUS "Submodule update")
-    
-    file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY)
-    execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      RESULT_VARIABLE GIT_SUBMOD_RESULT
-    )
-    file(LOCK ${CMAKE_SOURCE_DIR} DIRECTORY RELEASE)
-    
-    if(NOT GIT_SUBMOD_RESULT EQUAL "0")
-      message(FATAL_ERROR "git submodule update --init --recursive failed with ${GIT_SUBMOD_RESULT}, please checkout submodules")
-    endif()
-  endif()
+file(GLOB_RECURSE PATCHES *.patch)
 
-endif()
+foreach(PATCH ${PATCHES})
+    message(STATUS "Applying patch ${PATCH}")
+    exec_program("${GIT_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/minimap2" ARGS "apply ${PATCH}")
+endforeach()
 
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
   if (NOT CMAKE_BUILD_TYPE)
@@ -31,11 +18,27 @@ if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
 endif()
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
+if(WIN32)
+
+  set(ZLIB_COMPAT ON)
+  add_subdirectory(zlib-ng) 
+  include_directories(${CMAKE_CURRENT_BINARY_DIR}/zlib-ng)
+  set(ZLIB_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/zlib-ng/${CMAKE_BUILD_TYPE}/zlib.lib)
+
+  add_compile_definitions(PTW32_STATIC_LIB)
+  add_compile_definitions(HAVE_STRUCT_TIMESPEC)
+  add_subdirectory(pthread-win32)
+  include_directories(${CMAKE_SOURCE_DIR}/pthread-win32)
+  set(CMAKE_THREAD_LIBS_INIT ${CMAKE_CURRENT_BINARY_DIR}/pthread-win32/${CMAKE_BUILD_TYPE}/pthreadVC3.lib)
+
+else()
+  find_package(ZLIB REQUIRED)
+  find_package(Threads REQUIRED)
+endif()
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_compile_definitions(HAVE_KALLOC)
-
-find_package(ZLIB REQUIRED)
-find_package(Threads REQUIRED)
+add_compile_definitions(__SSE2__)
 
 add_library(mm2
     minimap2/align.c
@@ -61,14 +64,13 @@ add_library(mm2
     minimap2/splitidx.c
 )
 
-include_directories(${CMAKE_SOURCE_DIR}/minimap2)
-
+include_directories(${CMAKE_SOURCE_DIR}/minimap2) 
 add_library(mm2cpp src/ont_minimap2.c)
 
-target_link_libraries(mm2 PRIVATE ${ZLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m)
-target_link_libraries(mm2cpp PRIVATE mm2)
+target_link_libraries(mm2 ${ZLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(mm2cpp mm2)
 
-if (ONT_MM2_EXE) 
+if(ONT_MM2_EXE) 
   add_executable(minimap2 minimap2/main.c)
-  target_link_libraries(minimap2 PRIVATE mm2)
+  target_link_libraries(minimap2 mm2)
 endif()
