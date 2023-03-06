@@ -4,6 +4,7 @@ project(minimap2 VERSION 2.22.0 LANGUAGES C)
 
 option(ONT_MM2_EXE "Build minimap2 exe" OFF)
 
+find_package(Git REQUIRED)
 file(GLOB_RECURSE PATCHES *.patch)
 
 foreach(PATCH ${PATCHES})
