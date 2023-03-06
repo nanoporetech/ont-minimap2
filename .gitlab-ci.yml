@@ -5,7 +5,7 @@ build:linux:x86:20.04:
   image: ${DOCKER_CACHE}/ubuntu:20.04
   stage: build
   before_script:
-    - apt-get update && apt-get install -y git cmake zlib1g-dev
+    - DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y git cmake zlib1g-dev
   script:
     - cmake -S . -B cmake-build
     - cmake --build cmake-build --config Release -j 8
