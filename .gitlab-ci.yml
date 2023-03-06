@@ -1,3 +1,6 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
 build:linux:x86:20.04:
   image: ${DOCKER_CACHE}/ubuntu:20.04
   stage: build
