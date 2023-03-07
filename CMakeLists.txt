@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
 project(minimap2 VERSION 2.22.0 LANGUAGES C)
+enable_testing()
 
-option(ONT_MM2_EXE "Build minimap2 exe" OFF)
+option(ONT_MM2_EXE "Build minimap2 exe" ON)
 
 find_package(Git REQUIRED)
 file(GLOB_RECURSE PATCHES *.patch)
@@ -77,7 +78,11 @@ add_library(mm2cpp src/ont_minimap2.c)
 target_link_libraries(mm2 ${ZLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(mm2cpp mm2)
 
-if(ONT_MM2_EXE) 
+if(ONT_MM2_EXE)
+  add_test(
+    NAME minimap2_version_test
+    COMMAND minimap2 -V
+  )
   add_executable(minimap2 minimap2/main.c)
   target_link_libraries(minimap2 mm2)
 endif()
