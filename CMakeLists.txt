@@ -41,6 +41,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_compile_definitions(HAVE_KALLOC)
 add_compile_definitions(__SSE2__)
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64*|^arm*")
+   include_directories(${CMAKE_SOURCE_DIR}/minimap2/sse2neon)
+   add_compile_options(-fsigned-char)
+   add_compile_definitions(_FILE_OFFSET_BITS=64)
+endif()
+
 add_library(mm2
     minimap2/align.c
     minimap2/bseq.c
