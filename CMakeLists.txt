@@ -75,7 +75,7 @@ add_library(mm2
 include_directories(${CMAKE_SOURCE_DIR}/minimap2) 
 add_library(mm2cpp src/ont_minimap2.c)
 
-target_link_libraries(mm2 ${ZLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(mm2 ${ZLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m)
 target_link_libraries(mm2cpp mm2)
 
 if(ONT_MM2_EXE)
