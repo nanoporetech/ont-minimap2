@@ -23,6 +23,7 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 if(WIN32)
 
   set(ZLIB_COMPAT ON)
+  set(ZLIB_ENABLE_TESTS OFF)
   add_subdirectory(zlib-ng) 
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/zlib-ng)
   set(ZLIB_LIBRARIES ${CMAKE_CURRENT_BINARY_DIR}/zlib-ng/${CMAKE_BUILD_TYPE}/zlib.lib)
@@ -75,14 +76,20 @@ add_library(mm2
 include_directories(${CMAKE_SOURCE_DIR}/minimap2) 
 add_library(mm2cpp src/ont_minimap2.c)
 
-target_link_libraries(mm2 ${ZLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} m)
+target_link_libraries(mm2 ${ZLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+if(NOT WIN32)
+  target_link_libraries(mm2)
+endif()
+
 target_link_libraries(mm2cpp mm2)
 
 if(ONT_MM2_EXE)
-  add_test(
-    NAME minimap2_version_test
-    COMMAND minimap2 -V
-  )
   add_executable(minimap2 minimap2/main.c)
   target_link_libraries(minimap2 mm2)
+  get_target_property(MM2_BIN_DIR minimap2 SOURCE_DIR)
+  add_test(
+    NAME minimap2_version_test
+    WORKING_DIRECTORY ${MM2_BIN_DIR}
+    COMMAND minimap2 -V
+  )
 endif()
