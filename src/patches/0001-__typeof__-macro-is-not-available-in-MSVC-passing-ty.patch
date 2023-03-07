@@ -1,16 +1,14 @@
-From 2cbc189396ad664620a7824e253bfa3b7b9e1e41 Mon Sep 17 00:00:00 2001
 From: Jon Church <jon.church@nanoporetech.com>
-Date: Thu, 23 Sep 2021 14:27:10 +0100
-Subject: [PATCH] __typeof__ macro is not available in MSVC, passing type
- explicitly to *ALLOC macros
+Date: Thu, 01 Sep 2022 14:50:15 +0100
+Subject: [PATCH] __typeof__ macro is not available in MSVC, passing type explicitly to *ALLOC macros
 
 ---
  kalloc.h | 14 +++++++-------
  lchain.c | 26 +++++++++++++-------------
- 2 files changed, 20 insertions(+), 20 deletions(-)
+ seed.c   |  2 +-
+ 3 files changed, 21 insertions(+), 21 deletions(-)
 
 diff --git a/kalloc.h b/kalloc.h
-index 93bff5e..420ed70 100644
 --- a/kalloc.h
 +++ b/kalloc.h
 @@ -25,13 +25,13 @@ void km_stat(const void *_km, km_stat_t *s);
@@ -51,10 +49,9 @@ index 93bff5e..420ed70 100644
  	}
  
 diff --git a/lchain.c b/lchain.c
-index a1615ac..1753d27 100644
 --- a/lchain.c
 +++ b/lchain.c
-@@ -17,7 +17,7 @@ uint64_t *mg_chain_backtrack(void *km, int64_t n, const int32_t *f, const int64_
+@@ -35,7 +35,7 @@ uint64_t *mg_chain_backtrack(void *km, int64_t n, const int32_t *f, const int64_
  	for (i = 0, n_z = 0; i < n; ++i) // precompute n_z
  		if (f[i] >= min_sc) ++n_z;
  	if (n_z == 0) return 0;
@@ -63,16 +60,16 @@ index a1615ac..1753d27 100644
  	for (i = 0, k = 0; i < n; ++i) // populate z[]
  		if (f[i] >= min_sc) z[k].x = f[i], z[k++].y = i;
  	radix_sort_128x(z, z + n_z);
-@@ -33,7 +33,7 @@ uint64_t *mg_chain_backtrack(void *km, int64_t n, const int32_t *f, const int64_
- 			++n_u;
- 		else n_v = n_v0;
+@@ -54,7 +54,7 @@ uint64_t *mg_chain_backtrack(void *km, int64_t n, const int32_t *f, const int64_
+ 			else n_v = n_v0;
+ 		}
  	}
 -	KMALLOC(km, u, n_u);
 +	KMALLOC(uint64_t, km, u, n_u);
  	memset(t, 0, n * 4);
  	for (k = n_z - 1, n_v = n_u = 0; k >= 0; --k) { // populate u[]
- 		int64_t n_v0 = n_v;
-@@ -58,7 +58,7 @@ static mm128_t *compact_a(void *km, int32_t n_u, uint64_t *u, int32_t n_v, int32
+ 		if (t[z[k].y] == 0) {
+@@ -82,7 +82,7 @@ static mm128_t *compact_a(void *km, int32_t n_u, uint64_t *u, int32_t n_v, int32
  	int64_t i, j, k;
  
  	// write the result to b[]
@@ -81,7 +78,7 @@ index a1615ac..1753d27 100644
  	for (i = 0, k = 0; i < n_u; ++i) {
  		int32_t k0 = k, ni = (int32_t)u[i];
  		for (j = 0; j < ni; ++j)
-@@ -67,13 +67,13 @@ static mm128_t *compact_a(void *km, int32_t n_u, uint64_t *u, int32_t n_v, int32
+@@ -91,13 +91,13 @@ static mm128_t *compact_a(void *km, int32_t n_u, uint64_t *u, int32_t n_v, int32
  	kfree(km, v);
  
  	// sort u[] and a[] by the target position, such that adjacent chains may be joined
@@ -97,10 +94,10 @@ index a1615ac..1753d27 100644
  	for (i = k = 0; i < n_u; ++i) {
  		int32_t j = (int32_t)w[i].y, n = (int32_t)u[j];
  		u2[i] = u[j];
-@@ -135,10 +135,10 @@ mm128_t *mg_lchain_dp(int max_dist_x, int max_dist_y, int bw, int max_skip, int
- 	}
+@@ -160,10 +160,10 @@ mm128_t *mg_lchain_dp(int max_dist_x, int max_dist_y, int bw, int max_skip, int
  	if (max_dist_x < bw) max_dist_x = bw;
  	if (max_dist_y < bw && !is_cdna) max_dist_y = bw;
+ 	if (is_cdna) max_drop = INT32_MAX;
 -	KMALLOC(km, p, n);
 -	KMALLOC(km, f, n);
 -	KMALLOC(km, v, n);
@@ -112,7 +109,7 @@ index a1615ac..1753d27 100644
  
  	// fill the score and backtrack arrays
  	for (i = 0, max_ii = -1; i < n; ++i) {
-@@ -239,10 +239,10 @@ mm128_t *mg_lchain_rmq(int max_dist, int max_dist_inner, int bw, int max_chn_ski
+@@ -264,10 +264,10 @@ mm128_t *mg_lchain_rmq(int max_dist, int max_dist_inner, int bw, int max_chn_ski
  	}
  	if (max_dist < bw) max_dist = bw;
  	if (max_dist_inner <= 0 || max_dist_inner >= max_dist) max_dist_inner = 0;
@@ -127,6 +124,15 @@ index a1615ac..1753d27 100644
  	mem_mp = km_init2(km, 0x10000);
  	mp = kmp_init_rmq(mem_mp);
  
--- 
-2.31.1.windows.1
-
+diff --git a/seed.c b/seed.c
+--- a/seed.c
++++ b/seed.c
+@@ -7,7 +7,7 @@ void mm_seed_mz_flt(void *km, mm128_v *mv, int32_t q_occ_max, float q_occ_frac)
+ 	mm128_t *a;
+ 	size_t i, j, st;
+ 	if (mv->n <= q_occ_max || q_occ_frac <= 0.0f || q_occ_max <= 0) return;
+-	KMALLOC(km, a, mv->n);
++	KMALLOC(mm128_t, km, a, mv->n);
+ 	for (i = 0; i < mv->n; ++i)
+ 		a[i].x = mv->a[i].x, a[i].y = i;
+ 	radix_sort_128x(a, a + mv->n);
