@@ -26,6 +26,7 @@ if(WIN32)
   set(ZLIB_ENABLE_TESTS OFF)
   add_subdirectory(zlib-ng) 
   include_directories(${CMAKE_CURRENT_BINARY_DIR}/zlib-ng)
+  set(ZLIB_LIBRARIES zlib)
 
   add_compile_definitions(PTW32_STATIC_LIB)
   add_compile_definitions(HAVE_STRUCT_TIMESPEC)
@@ -75,7 +76,7 @@ add_library(mm2
 include_directories(${CMAKE_SOURCE_DIR}/minimap2) 
 add_library(mm2cpp src/ont_minimap2.c)
 
-target_link_libraries(mm2 zlib ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(mm2 ${ZLIB_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 if(NOT WIN32)
   target_link_libraries(mm2 m)
