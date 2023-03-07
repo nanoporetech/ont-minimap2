@@ -2,32 +2,29 @@ variables:
   DEBIAN_FRONTEND: noninteractive
   GIT_SUBMODULE_STRATEGY: recursive
 
+.build: &build
+  stage: build
+  script:
+    - cmake ${BUILD_OPTIONS} -S . -B cmake-build
+    - cmake --build cmake-build --config Release --target install -j 8
+    - ctest -C Release --test-dir cmake-build --output-on-failure
+
 build:linux:x86:20.04:
   image: ${DOCKER_CACHE}/ubuntu:20.04
-  stage: build
   before_script:
     - apt-get update && apt-get install -y git cmake zlib1g-dev
-  script:
-    - cmake -S . -B cmake-build
-    - cmake --build cmake-build --config Release -j 8
-    - ctest -C Release --test-dir cmake-build --output-on-failure
+  <<: *build
   tags:
     - linux
 
 build:windows:
-  stage: build
-  script:
-    - cmake -S . -B cmake-build -A x64
-    - cmake --build cmake-build --config Release -j 8
-    - ctest -C Release --test-dir cmake-build --output-on-failure
+  variables:
+    BUILD_OPTIONS: "-A x64"
+  <<: *build
   tags:
     - win10-gpu
 
 build:macos:m1:
-  stage: build
-  script:
-    - cmake -S . -B cmake-build
-    - cmake --build cmake-build --config Release -j 8
-    - ctest -C Release --test-dir cmake-build --output-on-failure
+  <<: *build
   tags:
     - m1
