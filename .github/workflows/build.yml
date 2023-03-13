@@ -23,5 +23,5 @@ jobs:
     - name: Build minimap2
       run: |
         cmake -S . -B cmake-build ${{ matrix.arch }}
-        cmake --build cmake-build --config Release --target install -j 4
+        cmake --build cmake-build --config Release -j 4
         ctest -C Release --test-dir cmake-build --output-on-failure
