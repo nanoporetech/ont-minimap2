@@ -3,7 +3,7 @@
 Cross platform builds for [minimap2](https://github.com/lh3/minimap2/).
 
 ```
-$ git clone --recurse-submodules https://github.com/nanoporetech/ont_minimap2.git
+$ git clone --recurse-submodules https://github.com/nanoporetech/ont-minimap2.git
 $ cmake -S . -B cmake-build
 $ cmake --build cmake-build --config Release -j
 $ ctest -C Release --test-dir cmake-build --output-on-failure
