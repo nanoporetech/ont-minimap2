@@ -17,7 +17,7 @@ jobs:
       with:
         submodules: recursive
     - name: Set up cmake
-      uses: jwlawson/actions-setup-cmake@v1.12
+      uses: jwlawson/actions-setup-cmake@v1.13
       with:
         cmake-version: '3.22.x'
     - name: Build minimap2
