@@ -1,5 +1,7 @@
 # ONT Minimap2
 
+[![build-minimap2](https://github.com/nanoporetech/ont-minimap2/actions/workflows/build.yml/badge.svg)](https://github.com/nanoporetech/ont-minimap2/actions/workflows/build.yml)
+
 Cross platform builds for [minimap2](https://github.com/lh3/minimap2/).
 
 ```
