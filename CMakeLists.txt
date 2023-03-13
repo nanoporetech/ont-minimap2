@@ -19,7 +19,7 @@ file(GLOB_RECURSE PATCHES *.patch)
 
 foreach(PATCH ${PATCHES})
     message(STATUS "Applying patch ${PATCH}")
-    exec_program("${GIT_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/minimap2" ARGS "apply ${PATCH}")
+    exec_program("${GIT_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/src/3rdparty/minimap2" ARGS "apply ${PATCH}")
 endforeach()
 
 # handle zlib and pthreads on windows
@@ -33,7 +33,7 @@ if(WIN32)
   add_compile_definitions(PTW32_STATIC_LIB)
   add_compile_definitions(HAVE_STRUCT_TIMESPEC)
   add_subdirectory(src/3rdparty/pthread-win32)
-  include_directories(${CMAKE_SOURCE_DIR}/pthread-win32)
+  include_directories(${CMAKE_SOURCE_DIR}/src/3rdparty/pthread-win32)
   set(CMAKE_THREAD_LIBS_INIT ${CMAKE_CURRENT_BINARY_DIR}/pthread-win32/${CMAKE_BUILD_TYPE}/pthreadVC3.lib)
 else()
   find_package(ZLIB REQUIRED)
