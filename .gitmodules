@@ -1,9 +1,9 @@
 [submodule "minimap2"]
-	path = minimap2
+	path = src/3rdparty/minimap2
 	url = https://github.com/lh3/minimap2.git
 [submodule "zlib-ng"]
-	path = zlib-ng
+	path = src/3rdparty/zlib-ng
 	url = https://github.com/zlib-ng/zlib-ng.git
 [submodule "pthread-win32"]
-	path = pthread-win32
+	path = src/3rdparty/pthread-win32
 	url = https://github.com/GerHobbelt/pthread-win32.git

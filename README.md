@@ -1,6 +1,6 @@
 # ONT Minimap2
 
-Wrapper around minimap2 that build a shared library.
+Cross platform builds for [minimap2](https://github.com/lh3/minimap2/).
 
 ```
 $ git clone --recurse-submodules https://github.com/nanoporetech/ont_minimap2.git
