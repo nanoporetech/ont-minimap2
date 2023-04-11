@@ -46,7 +46,7 @@ add_compile_definitions(HAVE_KALLOC)
 add_compile_definitions(__SSE2__)
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64*|^arm*")
-   include_directories(${CMAKE_SOURCE_DIR}/src/3rdparty/minimap2/sse2neon)
+   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/minimap2/sse2neon)
    add_compile_options(-fsigned-char)
    add_compile_definitions(_FILE_OFFSET_BITS=64)
 endif()
