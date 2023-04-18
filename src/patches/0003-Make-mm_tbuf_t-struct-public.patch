@@ -1,0 +1,32 @@
+diff --git a/map.c b/map.c
+index 2342c9e..360c889 100644
+--- a/map.c
++++ b/map.c
+@@ -10,11 +10,6 @@
+ #include "bseq.h"
+ #include "khash.h"
+ 
+-struct mm_tbuf_s {
+-	void *km;
+-	int rep_len, frag_gap;
+-};
+-
+ mm_tbuf_t *mm_tbuf_init(void)
+ {
+ 	mm_tbuf_t *b;
+diff --git a/minimap.h b/minimap.h
+index 4ea81df..ee7b613 100644
+--- a/minimap.h
++++ b/minimap.h
+@@ -193,6 +193,11 @@ typedef struct {
+ } mm_idx_reader_t;
+ 
+ // memory buffer for thread-local storage during mapping
++struct mm_tbuf_s {
++	void *km;
++	int rep_len, frag_gap;
++};
++
+ typedef struct mm_tbuf_s mm_tbuf_t;
+ 
+ // global variables
