@@ -1,6 +1,7 @@
 [submodule "minimap2"]
 	path = src/3rdparty/minimap2
 	url = https://github.com/lh3/minimap2.git
+	ignore = dirty
 [submodule "zlib-ng"]
 	path = src/3rdparty/zlib-ng
 	url = https://github.com/zlib-ng/zlib-ng.git
