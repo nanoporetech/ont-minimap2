@@ -90,7 +90,7 @@ include_directories(${CMAKE_SOURCE_DIR}/src/3rdparty/minimap2)
 target_link_libraries(minimap2 ${ZLIB_LIBRARIES})
 
 if(NOT WIN32)
-  target_link_libraries(minimap2 m)
+  target_link_libraries(minimap2 m Threads::Threads)
 else()
   target_link_libraries(minimap2 pthreadVC3)
 endif()
