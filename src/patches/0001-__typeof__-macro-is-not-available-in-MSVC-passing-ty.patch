@@ -1,54 +1,18 @@
-From: Jon Church <jon.church@nanoporetech.com>
-Date: Thu, 01 Sep 2022 14:50:15 +0100
-Subject: [PATCH] __typeof__ macro is not available in MSVC, passing type explicitly to *ALLOC macros
-
----
- kalloc.h | 14 +++++++-------
- lchain.c | 26 +++++++++++++-------------
- seed.c   |  2 +-
- 3 files changed, 21 insertions(+), 21 deletions(-)
-
 diff --git a/kalloc.h b/kalloc.h
+index 93bff5e..bcb8953 100644
 --- a/kalloc.h
 +++ b/kalloc.h
-@@ -25,13 +25,13 @@ void km_stat(const void *_km, km_stat_t *s);
- }
- #endif
- 
--#define KMALLOC(km, ptr, len) ((ptr) = (__typeof__(ptr))kmalloc((km), (len) * sizeof(*(ptr))))
--#define KCALLOC(km, ptr, len) ((ptr) = (__typeof__(ptr))kcalloc((km), (len), sizeof(*(ptr))))
--#define KREALLOC(km, ptr, len) ((ptr) = (__typeof__(ptr))krealloc((km), (ptr), (len) * sizeof(*(ptr))))
-+#define KMALLOC(__type, km, ptr, len) ((ptr) = (__type*)kmalloc((km), (len) * sizeof(*(ptr))))
-+#define KCALLOC(__type, km, ptr, len) ((ptr) = (__type*)kcalloc((km), (len), sizeof(*(ptr))))
-+#define KREALLOC(__type, km, ptr, len) ((ptr) = (__type*)krealloc((km), (ptr), (len) * sizeof(*(ptr))))
- 
--#define KEXPAND(km, a, m) do { \
-+#define KEXPAND(__type, km, a, m) do { \
- 		(m) = (m) >= 4? (m) + ((m)>>1) : 16; \
--		KREALLOC((km), (a), (m)); \
-+		KREALLOC(__type, (km), (a), (m)); \
- 	} while (0)
- 
- #ifndef klib_unused
 @@ -50,7 +50,7 @@ void km_stat(const void *_km, km_stat_t *s);
  	} kmp_##name##_t; \
  	SCOPE kmp_##name##_t *kmp_init_##name(void *km) { \
  		kmp_##name##_t *mp; \
 -		KCALLOC(km, mp, 1); \
-+		KCALLOC(kmp_##name##_t, km, mp, 1); \
++		Kcalloc(km, mp, 1); \
  		mp->km = km; \
  		return mp; \
  	} \
-@@ -66,7 +66,7 @@ void km_stat(const void *_km, km_stat_t *s);
- 	} \
- 	SCOPE void kmp_free_##name(kmp_##name##_t *mp, kmptype_t *p) { \
- 		--mp->cnt; \
--		if (mp->n == mp->max) KEXPAND(mp->km, mp->buf, mp->max); \
-+		if (mp->n == mp->max) KEXPAND(kmptype_t*, mp->km, mp->buf, mp->max); \
- 		mp->buf[mp->n++] = p; \
- 	}
- 
 diff --git a/lchain.c b/lchain.c
+index d004157..704178a 100644
 --- a/lchain.c
 +++ b/lchain.c
 @@ -35,7 +35,7 @@ uint64_t *mg_chain_backtrack(void *km, int64_t n, const int32_t *f, const int64_
@@ -56,7 +20,7 @@ diff --git a/lchain.c b/lchain.c
  		if (f[i] >= min_sc) ++n_z;
  	if (n_z == 0) return 0;
 -	KMALLOC(km, z, n_z);
-+	KMALLOC(mm128_t, km, z, n_z);
++	Kalloc(km, z, n_z);
  	for (i = 0, k = 0; i < n; ++i) // populate z[]
  		if (f[i] >= min_sc) z[k].x = f[i], z[k++].y = i;
  	radix_sort_128x(z, z + n_z);
@@ -65,7 +29,7 @@ diff --git a/lchain.c b/lchain.c
  		}
  	}
 -	KMALLOC(km, u, n_u);
-+	KMALLOC(uint64_t, km, u, n_u);
++	Kalloc(km, u, n_u);
  	memset(t, 0, n * 4);
  	for (k = n_z - 1, n_v = n_u = 0; k >= 0; --k) { // populate u[]
  		if (t[z[k].y] == 0) {
@@ -74,7 +38,7 @@ diff --git a/lchain.c b/lchain.c
  
  	// write the result to b[]
 -	KMALLOC(km, b, n_v);
-+	KMALLOC(mm128_t, km, b, n_v);
++	Kalloc(km, b, n_v);
  	for (i = 0, k = 0; i < n_u; ++i) {
  		int32_t k0 = k, ni = (int32_t)u[i];
  		for (j = 0; j < ni; ++j)
@@ -83,14 +47,14 @@ diff --git a/lchain.c b/lchain.c
  
  	// sort u[] and a[] by the target position, such that adjacent chains may be joined
 -	KMALLOC(km, w, n_u);
-+	KMALLOC(mm128_t, km, w, n_u);
++	Kalloc(km, w, n_u);
  	for (i = k = 0; i < n_u; ++i) {
  		w[i].x = b[k].x, w[i].y = (uint64_t)k<<32|i;
  		k += (int32_t)u[i];
  	}
  	radix_sort_128x(w, w + n_u);
 -	KMALLOC(km, u2, n_u);
-+	KMALLOC(uint64_t, km, u2, n_u);
++	Kalloc(km, u2, n_u);
  	for (i = k = 0; i < n_u; ++i) {
  		int32_t j = (int32_t)w[i].y, n = (int32_t)u[j];
  		u2[i] = u[j];
@@ -102,10 +66,10 @@ diff --git a/lchain.c b/lchain.c
 -	KMALLOC(km, f, n);
 -	KMALLOC(km, v, n);
 -	KCALLOC(km, t, n);
-+	KMALLOC(int64_t, km, p, n);
-+	KMALLOC(int32_t, km, f, n);
-+	KMALLOC(int32_t, km, v, n);
-+	KCALLOC(int32_t, km, t, n);
++	Kalloc(km, p, n);
++	Kalloc(km, f, n);
++	Kalloc(km, v, n);
++	Kcalloc(km, t, n);
  
  	// fill the score and backtrack arrays
  	for (i = 0, max_ii = -1; i < n; ++i) {
@@ -117,14 +81,15 @@ diff --git a/lchain.c b/lchain.c
 -	KMALLOC(km, f, n);
 -	KCALLOC(km, t, n);
 -	KMALLOC(km, v, n);
-+	KMALLOC(int64_t, km, p, n);
-+	KMALLOC(int32_t, km, f, n);
-+	KCALLOC(int32_t, km, t, n);
-+	KMALLOC(int32_t, km, v, n);
++	Kalloc(km, p, n);
++	Kalloc(km, f, n);
++	Kalloc(km, t, n);
++	Kalloc(km, v, n);
  	mem_mp = km_init2(km, 0x10000);
  	mp = kmp_init_rmq(mem_mp);
  
 diff --git a/seed.c b/seed.c
+index 08fe5ad..7cf6313 100644
 --- a/seed.c
 +++ b/seed.c
 @@ -7,7 +7,7 @@ void mm_seed_mz_flt(void *km, mm128_v *mv, int32_t q_occ_max, float q_occ_frac)
@@ -132,7 +97,7 @@ diff --git a/seed.c b/seed.c
  	size_t i, j, st;
  	if (mv->n <= q_occ_max || q_occ_frac <= 0.0f || q_occ_max <= 0) return;
 -	KMALLOC(km, a, mv->n);
-+	KMALLOC(mm128_t, km, a, mv->n);
++	Kalloc(km, a, mv->n);
  	for (i = 0; i < mv->n; ++i)
  		a[i].x = mv->a[i].x, a[i].y = i;
  	radix_sort_128x(a, a + mv->n);
