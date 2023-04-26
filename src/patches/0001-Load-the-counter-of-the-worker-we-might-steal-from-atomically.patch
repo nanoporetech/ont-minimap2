@@ -1,0 +1,34 @@
+From: Ben Lawrence <ben.lawrence@nanoporetech.com>
+Date: Mon, 24 Apr 2023 11:49:59 +0100
+Subject: Load the counter of the worker we might steal from atomically
+
+TSan complains that this read of |ktf_worker_t::i| is unsynchronised
+wrt the stores on the other worker threads. Unlike the __atomic_*
+family of functions the __sync_* functions don't have a relaxed read
+without modification, so to emulate this behaviour I've used the
+existing __sync_fetch_and_add() with an increment of 0.
+---
+ kthread.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/kthread.c b/kthread.c
+--- a/kthread.c
++++ b/kthread.c
+@@ -29,10 +29,12 @@ typedef struct kt_for_t {
+ 
+ static inline long steal_work(kt_for_t *t)
+ {
+-	int i, min_i = -1;
++	int i, w_i, min_i = -1;
+ 	long k, min = LONG_MAX;
+-	for (i = 0; i < t->n_threads; ++i)
+-		if (min > t->w[i].i) min = t->w[i].i, min_i = i;
++	for (i = 0; i < t->n_threads; ++i) {
++		w_i = __sync_fetch_and_add(&t->w[i].i, 0);
++		if (min > w_i) min = w_i, min_i = i;
++	}
+ 	k = __sync_fetch_and_add(&t->w[min_i].i, t->n_threads);
+ 	return k >= t->n? -1 : k;
+ }
+--
+2.40.0
