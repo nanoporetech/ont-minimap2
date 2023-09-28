@@ -3,7 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 project(minimap2 VERSION 2.24.0 LANGUAGES C)
 enable_testing()
 
-option(ONT_MM2_EXE "Build minimap2 exe" ON)
+option(ONT_MM2_EXE "Build minimap2 exe" OFF)
+option(ONT_MM2_LIB "Build minimap2 lib" ON)
 
 # set default build type to release
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
@@ -75,22 +76,31 @@ set(MM2_SOURCES
 )
 
 if(ONT_MM2_EXE)
-  add_executable(minimap2 ${MM2_SOURCES} src/3rdparty/minimap2/main.c)
-  get_target_property(MM2_BIN_DIR minimap2 SOURCE_DIR)
+  add_executable(minimap2-exe ${MM2_SOURCES} src/3rdparty/minimap2/main.c)
+  list(APPEND TARGETS minimap2-exe)
+  set_target_properties(minimap2-exe PROPERTIES OUTPUT_NAME minimap2)
+  get_target_property(MM2_BIN_DIR minimap2-exe SOURCE_DIR)
   add_test(
     NAME minimap2_version_test
     WORKING_DIRECTORY ${MM2_BIN_DIR}
     COMMAND minimap2 -V
   )
-else()
+endif()
+if(ONT_MM2_LIB)
   add_library(minimap2 ${MM2_SOURCES})
+  list(APPEND TARGETS minimap2)
 endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/src/3rdparty/minimap2) 
-target_link_libraries(minimap2 ${ZLIB_LIBRARIES})
 
-if(NOT WIN32)
-  target_link_libraries(minimap2 m Threads::Threads)
-else()
-  target_link_libraries(minimap2 pthreadVC3)
-endif()
+foreach(TARGET IN LISTS TARGETS)
+  target_link_libraries(${TARGET} ${ZLIB_LIBRARIES})
+
+  if(NOT WIN32)
+    target_link_libraries(${TARGET} m Threads::Threads)
+  else()
+    target_link_libraries(${TARGET} pthreadVC3)
+  endif()
+endforeach()
+
+install(TARGETS ${TARGETS})
