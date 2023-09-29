@@ -77,20 +77,15 @@ set(MM2_SOURCES
 
 if(ONT_MM2_EXE)
   add_executable(minimap2_exe ${MM2_SOURCES} src/3rdparty/minimap2/main.c)
-  message(STATUS "added exec: minimap2_exe")
   list(APPEND TARGETS minimap2_exe)
   set_target_properties(minimap2_exe PROPERTIES OUTPUT_NAME minimap2)
-  get_target_property(MM2_BIN_DIR minimap2_exe SOURCE_DIR)
   add_test(
     NAME minimap2_version_test
-    WORKING_DIRECTORY ${MM2_BIN_DIR}
-    COMMAND minimap2 -V
+    COMMAND minimap2_exe -V
   )
-  message(STATUS "added test: minimap2_version_test")
 endif()
 if(ONT_MM2_LIB)
   add_library(minimap2 ${MM2_SOURCES})
-  message(STATUS "added lib: minimap2")
   list(APPEND TARGETS minimap2)
 endif()
 
