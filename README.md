@@ -15,5 +15,5 @@ $ ctest -C Release --test-dir cmake-build --output-on-failure
 
 | CMake                    | Description                                     | Default |
 |:-------------------------|:------------------------------------------------|---------|
-| ONT_MM2_EXE              | Build the minimap2 executable                   | ON      |
-| ONT_MM2_LIB              | Build the minimap2 library                      | OFF     |
+| ONT_MM2_EXE              | Build the minimap2 executable                   | OFF     |
+| ONT_MM2_LIB              | Build the minimap2 library                      | ON      |
