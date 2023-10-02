@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(minimap2 VERSION 2.24.0 LANGUAGES C)
 enable_testing()
 
-option(ONT_MM2_EXE "Build minimap2 exe" OFF)
+option(ONT_MM2_EXE "Build minimap2 exe" ON)
 
 # set default build type to release
 if (NOT EXISTS ${CMAKE_BINARY_DIR}/CMakeCache.txt)
