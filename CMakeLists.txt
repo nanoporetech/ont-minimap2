@@ -86,10 +86,9 @@ if(ONT_MM2_EXE)
 endif()
 if(ONT_MM2_LIB)
   add_library(minimap2 ${MM2_SOURCES})
+  target_include_directories(minimap2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/minimap2)
   list(APPEND TARGETS minimap2)
 endif()
-
-include_directories(${CMAKE_SOURCE_DIR}/src/3rdparty/minimap2) 
 
 foreach(TARGET IN LISTS TARGETS)
   target_link_libraries(${TARGET} ${ZLIB_LIBRARIES})
