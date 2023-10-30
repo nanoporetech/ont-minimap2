@@ -1,5 +1,5 @@
 diff --git a/hit.c b/hit.c
-index f49827e..65ee716 100644
+index f49827e..6248d78 100644
 --- a/hit.c
 +++ b/hit.c
 @@ -315,7 +315,8 @@ int mm_squeeze_a(void *km, int n_regs, mm_reg1_t *regs, mm128_t *a)
@@ -7,7 +7,7 @@ index f49827e..65ee716 100644
  	for (i = 0; i < n_regs; ++i)
  		aux[i] = (uint64_t)regs[i].as << 32 | i;
 -	radix_sort_64(aux, aux + n_regs);
-+    if (aux != NULL) 
++	if (aux)
 +		radix_sort_64(aux, aux + n_regs);
  	for (i = 0; i < n_regs; ++i) {
  		mm_reg1_t *r = &regs[(int32_t)aux[i]];
