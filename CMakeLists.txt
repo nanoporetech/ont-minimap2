@@ -18,8 +18,24 @@ find_package(Git REQUIRED)
 file(GLOB_RECURSE PATCHES *.patch)
 
 foreach(PATCH ${PATCHES})
-    message(STATUS "Applying patch ${PATCH}")
-    exec_program("${GIT_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/src/3rdparty/minimap2" ARGS "apply ${PATCH}")
+    # See if we need to apply the patch.
+    execute_process(
+        COMMAND ${GIT_EXECUTABLE} apply --reverse --check ${PATCH}
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/src/3rdparty/minimap2"
+        RESULT_VARIABLE NOT_ALREADY_APPLIED
+        ERROR_QUIET
+    )
+    if (NOT_ALREADY_APPLIED)
+        message(STATUS "Applying patch ${PATCH}")
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} apply ${PATCH}
+            WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/src/3rdparty/minimap2"
+            RESULT_VARIABLE PATCH_FAILED
+        )
+        if (PATCH_FAILED)
+            message(FATAL_ERROR "Failed to apply patch ${PATCH}")
+        endif()
+    endif()
 endforeach()
 
 # handle zlib and pthreads on windows
