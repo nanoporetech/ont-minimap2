@@ -28,5 +28,5 @@ build:windows:
 build:macos:m1:
   <<: *build
   tags:
-    - xcode-13.3.1
-    - m1
+    - osx_arm64
+    - xcode-15.3
