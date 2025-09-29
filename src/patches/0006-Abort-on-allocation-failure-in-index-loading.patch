@@ -6,7 +6,7 @@ index cd8b40e..5da60a5 100644
  	mm_idx_intv1_t *a;
  } mm_idx_intv_t;
  
-+void allocation_failure(uint64_t bytes) {
++static void allocation_failure(uint64_t bytes) {
 +	fprintf(stderr, "[ERROR] Allocation failure inside minimap2 - "
 +					"failed to allocate %lu bytes. Shutting down.\n", bytes);
 +	abort();
