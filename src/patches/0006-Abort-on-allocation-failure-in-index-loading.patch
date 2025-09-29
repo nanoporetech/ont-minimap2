@@ -1,21 +1,29 @@
 diff --git a/index.c b/index.c
-index cd8b40e..5da60a5 100644
+index cd8b40e..9871dc9 100644
 --- a/index.c
 +++ b/index.c
-@@ -41,6 +41,12 @@ typedef struct mm_idx_intv_s {
+@@ -6,6 +6,7 @@
+ #include <unistd.h>
+ #endif
+ #include <fcntl.h>
++#include <inttypes.h>
+ #include <stdio.h>
+ #define __STDC_LIMIT_MACROS
+ #include "kthread.h"
+@@ -41,6 +42,12 @@ typedef struct mm_idx_intv_s {
  	mm_idx_intv1_t *a;
  } mm_idx_intv_t;
  
 +static void allocation_failure(uint64_t bytes) {
 +	fprintf(stderr, "[ERROR] Allocation failure inside minimap2 - "
-+					"failed to allocate %lu bytes. Shutting down.\n", bytes);
++					"failed to allocate %" PRIu64 " bytes. Shutting down.\n", bytes);
 +	abort();
 +}
 +
  mm_idx_t *mm_idx_init(int w, int k, int b, int flag)
  {
  	mm_idx_t *mi;
-@@ -326,6 +332,9 @@ static void *worker_pipeline(void *shared, int step, void *in)
+@@ -326,6 +333,9 @@ static void *worker_pipeline(void *shared, int step, void *in)
  				kroundup64(old_max_len); kroundup64(max_len);
  				if (old_max_len != max_len) {
  					p->mi->S = (uint32_t*)realloc(p->mi->S, max_len * 4);
@@ -25,7 +33,7 @@ index cd8b40e..5da60a5 100644
  					memset(&p->mi->S[old_max_len], 0, 4 * (max_len - old_max_len));
  				}
  			}
-@@ -551,6 +560,9 @@ mm_idx_t *mm_idx_load(FILE *fp)
+@@ -551,6 +561,9 @@ mm_idx_t *mm_idx_load(FILE *fp)
  	}
  	if (!(mi->flag & MM_I_NO_SEQ)) {
  		mi->S = (uint32_t*)malloc((sum_len + 7) / 8 * 4);
@@ -36,16 +44,24 @@ index cd8b40e..5da60a5 100644
  	}
  	return mi;
 diff --git a/kvec.h b/kvec.h
-index e865173..685ac0a 100644
+index e865173..bf6bbe7 100644
 --- a/kvec.h
 +++ b/kvec.h
-@@ -80,6 +80,11 @@ int main() {
+@@ -48,6 +48,7 @@ int main() {
+ #ifndef AC_KVEC_H
+ #define AC_KVEC_H
+ 
++#include <inttypes.h>
+ #include <stdlib.h>
+ #include "kalloc.h"
+ 
+@@ -80,6 +81,11 @@ int main() {
  			(v).m = (v).m? (v).m<<1 : 2; \
  			(v).a = (type*)krealloc((km), (v).a, sizeof(type) * (v).m); \
  		} \
 +		if (!(v).a) { \
 +			fprintf(stderr, "[ERROR] Allocation failure inside minimap2 - " \
-+				"failed to allocate %lu bytes. Shutting down.\n", sizeof(type) * (v).m); \
++				"failed to allocate %zu bytes. Shutting down.\n", sizeof(type) * (v).m); \
 +			abort(); \
 +		} \
  		(v).a[(v).n++] = (x); \
