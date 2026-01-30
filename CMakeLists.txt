@@ -57,16 +57,58 @@ endif()
 
 # compiler settings
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-add_compile_definitions(HAVE_KALLOC)
-add_compile_definitions(__SSE2__)
+add_compile_definitions(
+  HAVE_KALLOC
+  __SSE2__ # The SSE implementations require this to be set, even for NEON.
+  _FILE_OFFSET_BITS=64
+)
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64*|^arm*")
-   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/minimap2/sse2neon)
-   add_compile_options(-fsigned-char)
-   add_compile_definitions(_FILE_OFFSET_BITS=64)
+# KSW is built as both SSE2+4.1 if supported.
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "^aarch64*|^arm*")
+  # Non-SSE impl.
+  add_library(minimap2_ksw2
+    src/3rdparty/minimap2/ksw2_extd2_sse.c
+    src/3rdparty/minimap2/ksw2_exts2_sse.c
+    src/3rdparty/minimap2/ksw2_extz2_sse.c
+    src/3rdparty/minimap2/ksw2_ll_sse.c
+  )
+  target_include_directories(minimap2_ksw2 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/minimap2/sse2neon)
+
+else()
+  # Dispatch impl.
+  function(ont_minimap2_add_ksw2 NAME FLAGS)
+    add_library(${NAME}
+      src/3rdparty/minimap2/ksw2_extd2_sse.c
+      src/3rdparty/minimap2/ksw2_exts2_sse.c
+      src/3rdparty/minimap2/ksw2_extz2_sse.c
+    )
+    target_compile_definitions(${NAME} PRIVATE KSW_CPU_DISPATCH)
+    target_compile_options(${NAME} PRIVATE ${${FLAGS}})
+  endfunction()
+
+  if (WIN32)
+    # Windows gets these by default, but needs the define set to match the code.
+    set(FLAGS_SSE2)
+    set(FLAGS_SSE41 /D__SSE4_1__)
+  else()
+    # We build for x64 so the SSE2 flag isn't technically needed.
+    set(FLAGS_SSE2 -msse2 -mno-sse4.1)
+    set(FLAGS_SSE41 -msse4.1)
+  endif()
+
+  # Create both targets and link them into one.
+  ont_minimap2_add_ksw2(minimap2_ksw2_sse2 FLAGS_SSE2)
+  ont_minimap2_add_ksw2(minimap2_ksw2_sse41 FLAGS_SSE41)
+  add_library(minimap2_ksw2
+    src/3rdparty/minimap2/ksw2_dispatch.c
+    src/3rdparty/minimap2/ksw2_ll_sse.c
+  )
+  target_compile_definitions(minimap2_ksw2 PRIVATE KSW_CPU_DISPATCH)
+  target_link_libraries(minimap2_ksw2 PUBLIC minimap2_ksw2_sse2 minimap2_ksw2_sse41)
 endif()
 
-set(MM2_SOURCES
+# Create the minimap2 library
+add_library(minimap2
     src/3rdparty/minimap2/align.c
     src/3rdparty/minimap2/bseq.c
     src/3rdparty/minimap2/esterr.c
@@ -74,10 +116,6 @@ set(MM2_SOURCES
     src/3rdparty/minimap2/hit.c
     src/3rdparty/minimap2/index.c
     src/3rdparty/minimap2/kalloc.c
-    src/3rdparty/minimap2/ksw2_extd2_sse.c
-    src/3rdparty/minimap2/ksw2_exts2_sse.c
-    src/3rdparty/minimap2/ksw2_extz2_sse.c
-    src/3rdparty/minimap2/ksw2_ll_sse.c
     src/3rdparty/minimap2/kthread.c
     src/3rdparty/minimap2/lchain.c
     src/3rdparty/minimap2/map.c
@@ -89,15 +127,17 @@ set(MM2_SOURCES
     src/3rdparty/minimap2/sketch.c
     src/3rdparty/minimap2/splitidx.c
 )
-
-# Create the minimap2 library
-add_library(minimap2 ${MM2_SOURCES})
 target_include_directories(minimap2 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/3rdparty/minimap2)
-target_link_libraries(minimap2 ${ZLIB_LIBRARIES})
+target_link_libraries(minimap2
+  PUBLIC
+    ${ZLIB_LIBRARIES}
+  PRIVATE
+    minimap2_ksw2
+)
 if(NOT WIN32)
-  target_link_libraries(minimap2 m Threads::Threads)
+  target_link_libraries(minimap2 PRIVATE m Threads::Threads)
 else()
-  target_link_libraries(minimap2 pthreadVC3)
+  target_link_libraries(minimap2 PRIVATE pthreadVC3)
 endif()
 list(APPEND TARGETS minimap2)
 
