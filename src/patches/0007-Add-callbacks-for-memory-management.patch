@@ -1,0 +1,56 @@
+diff --git a/map.c b/map.c
+index 038888f..4fed812 100644
+--- a/map.c
++++ b/map.c
+@@ -108,6 +108,9 @@ static mm128_t *collect_seed_hits_heap(void *km, const mm_mapopt_t *opt, int max
+ 	mm128_t *a, *heap;
+ 
+ 	m = mm_collect_matches(km, &n_m, qlen, max_occ, opt->max_max_occ, opt->occ_dist, mi, mv, n_a, rep_len, n_mini_pos, mini_pos);
++	// The allocations based on |n_a| are by far the biggest in minimap2,
++	// so block until we have space for them.
++	if (dorado_mm2_reserve) dorado_mm2_reserve(*n_a);
+ 
+ 	heap = (mm128_t*)kmalloc(km, n_m * sizeof(mm128_t));
+ 	a = (mm128_t*)kmalloc(km, *n_a * sizeof(mm128_t));
+@@ -172,6 +175,9 @@ static mm128_t *collect_seed_hits(void *km, const mm_mapopt_t *opt, int max_occ,
+ 	mm_seed_t *m;
+ 	mm128_t *a;
+ 	m = mm_collect_matches(km, &n_m, qlen, max_occ, opt->max_max_occ, opt->occ_dist, mi, mv, n_a, rep_len, n_mini_pos, mini_pos);
++	// The allocations based on |n_a| are by far the biggest in minimap2,
++	// so block until we have space for them.
++	if (dorado_mm2_reserve) dorado_mm2_reserve(*n_a);
+ 	a = (mm128_t*)kmalloc(km, *n_a * sizeof(mm128_t));
+ 	for (i = 0, *n_a = 0; i < n_m; ++i) {
+ 		mm_seed_t *q = &m[i];
+@@ -371,6 +377,9 @@ void mm_map_frag(const mm_idx_t *mi, int n_segs, const int *qlens, const char **
+ 			b->km = km_init();
+ 		}
+ 	}
++
++	// All the allocations have been released.
++	if (dorado_mm2_release) dorado_mm2_release();
+ }
+ 
+ mm_reg1_t *mm_map(const mm_idx_t *mi, int qlen, const char *seq, int *n_regs, mm_tbuf_t *b, const mm_mapopt_t *opt, const char *qname)
+@@ -707,3 +716,6 @@ int mm_split_merge(int n_segs, const char **fn, const mm_mapopt_t *opt, int n_sp
+ 	mm_split_rm_tmp(opt->split_prefix, n_split_idx);
+ 	return 0;
+ }
++
++void (*dorado_mm2_reserve)(int64_t n_a);
++void (*dorado_mm2_release)();
+diff --git a/minimap.h b/minimap.h
+index 015f4a8..c18eb71 100644
+--- a/minimap.h
++++ b/minimap.h
+@@ -372,6 +372,10 @@ mm_reg1_t *mm_map(const mm_idx_t *mi, int l_seq, const char *seq, int *n_regs, m
+ 
+ void mm_map_frag(const mm_idx_t *mi, int n_segs, const int *qlens, const char **seqs, int *n_regs, mm_reg1_t **regs, mm_tbuf_t *b, const mm_mapopt_t *opt, const char *qname);
+ 
++// Optional callbacks for managing large allocations during mapping.
++extern void (*dorado_mm2_reserve)(int64_t n_a);
++extern void (*dorado_mm2_release)();
++
+ /**
+  * Align a fasta/fastq file and print alignments to stdout
+  *
