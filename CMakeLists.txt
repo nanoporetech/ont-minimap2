@@ -119,6 +119,7 @@ add_library(minimap2
     src/3rdparty/minimap2/format.c
     src/3rdparty/minimap2/hit.c
     src/3rdparty/minimap2/index.c
+    src/3rdparty/minimap2/jump.c
     src/3rdparty/minimap2/kalloc.c
     src/3rdparty/minimap2/kthread.c
     src/3rdparty/minimap2/lchain.c
