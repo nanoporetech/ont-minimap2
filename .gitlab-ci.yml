@@ -16,16 +16,21 @@ build:linux:x86:20.04:
   <<: *build
   tags:
     - linux
+    - prod
+    - amd64
+    - eks
+    - small
+    - standard
 
 build:windows:
   variables:
     BUILD_OPTIONS: "-A x64"
   <<: *build
   tags:
-    - windows-10
-    - VS2019
+    - windows
+    - VS2022
 
-build:macos:m1:
+build:macos:
   <<: *build
   tags:
     - osx_arm64
