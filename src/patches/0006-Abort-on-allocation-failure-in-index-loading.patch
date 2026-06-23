@@ -1,5 +1,5 @@
 diff --git a/index.c b/index.c
-index cd8b40e..9871dc9 100644
+index 9685006..5f50709 100644
 --- a/index.c
 +++ b/index.c
 @@ -6,6 +6,7 @@
@@ -10,9 +10,9 @@ index cd8b40e..9871dc9 100644
  #include <stdio.h>
  #define __STDC_LIMIT_MACROS
  #include "kthread.h"
-@@ -41,6 +42,12 @@ typedef struct mm_idx_intv_s {
- 	mm_idx_intv1_t *a;
- } mm_idx_intv_t;
+@@ -47,6 +48,12 @@ typedef struct mm_idx_jjump_s {
+ 	mm_idx_jjump1_t *a;
+ } mm_idx_jjump_t;
  
 +static void allocation_failure(uint64_t bytes) {
 +	fprintf(stderr, "[ERROR] Allocation failure inside minimap2 - "
@@ -23,7 +23,7 @@ index cd8b40e..9871dc9 100644
  mm_idx_t *mm_idx_init(int w, int k, int b, int flag)
  {
  	mm_idx_t *mi;
-@@ -326,6 +333,9 @@ static void *worker_pipeline(void *shared, int step, void *in)
+@@ -338,6 +345,9 @@ static void *worker_pipeline(void *shared, int step, void *in)
  				kroundup64(old_max_len); kroundup64(max_len);
  				if (old_max_len != max_len) {
  					p->mi->S = (uint32_t*)realloc(p->mi->S, max_len * 4);
@@ -33,7 +33,7 @@ index cd8b40e..9871dc9 100644
  					memset(&p->mi->S[old_max_len], 0, 4 * (max_len - old_max_len));
  				}
  			}
-@@ -551,6 +561,9 @@ mm_idx_t *mm_idx_load(FILE *fp)
+@@ -563,6 +573,9 @@ mm_idx_t *mm_idx_load(FILE *fp)
  	}
  	if (!(mi->flag & MM_I_NO_SEQ)) {
  		mi->S = (uint32_t*)malloc((sum_len + 7) / 8 * 4);
@@ -44,7 +44,7 @@ index cd8b40e..9871dc9 100644
  	}
  	return mi;
 diff --git a/kvec.h b/kvec.h
-index e865173..bf6bbe7 100644
+index e865173..aaf122a 100644
 --- a/kvec.h
 +++ b/kvec.h
 @@ -48,6 +48,7 @@ int main() {

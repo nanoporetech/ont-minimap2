@@ -1,5 +1,5 @@
 diff --git a/map.c b/map.c
-index 038888f..4fed812 100644
+index 54f78a4..1e6abb9 100644
 --- a/map.c
 +++ b/map.c
 @@ -108,6 +108,9 @@ static mm128_t *collect_seed_hits_heap(void *km, const mm_mapopt_t *opt, int max
@@ -22,7 +22,7 @@ index 038888f..4fed812 100644
  	a = (mm128_t*)kmalloc(km, *n_a * sizeof(mm128_t));
  	for (i = 0, *n_a = 0; i < n_m; ++i) {
  		mm_seed_t *q = &m[i];
-@@ -371,6 +377,9 @@ void mm_map_frag(const mm_idx_t *mi, int n_segs, const int *qlens, const char **
+@@ -375,6 +381,9 @@ void mm_map_frag_core(const mm_idx_t *mi, int n_segs, const int *qlens, const ch
  			b->km = km_init();
  		}
  	}
@@ -31,8 +31,8 @@ index 038888f..4fed812 100644
 +	if (dorado_mm2_release) dorado_mm2_release();
  }
  
- mm_reg1_t *mm_map(const mm_idx_t *mi, int qlen, const char *seq, int *n_regs, mm_tbuf_t *b, const mm_mapopt_t *opt, const char *qname)
-@@ -707,3 +716,6 @@ int mm_split_merge(int n_segs, const char **fn, const mm_mapopt_t *opt, int n_sp
+ void mm_map_frag(const mm_idx_t *mi, int n_segs, const int *qlens, const char **seqs, int *n_regs, mm_reg1_t **regs, mm_tbuf_t *b, const mm_mapopt_t *opt, const char *qname)
+@@ -734,3 +743,6 @@ int mm_split_merge(int n_segs, const char **fn, const mm_mapopt_t *opt, int n_sp
  	mm_split_rm_tmp(opt->split_prefix, n_split_idx);
  	return 0;
  }
@@ -40,10 +40,10 @@ index 038888f..4fed812 100644
 +void (*dorado_mm2_reserve)(int64_t n_a);
 +void (*dorado_mm2_release)();
 diff --git a/minimap.h b/minimap.h
-index 015f4a8..c18eb71 100644
+index f4820e0..96aec2a 100644
 --- a/minimap.h
 +++ b/minimap.h
-@@ -372,6 +372,10 @@ mm_reg1_t *mm_map(const mm_idx_t *mi, int l_seq, const char *seq, int *n_regs, m
+@@ -380,6 +380,10 @@ mm_reg1_t *mm_map(const mm_idx_t *mi, int l_seq, const char *seq, int *n_regs, m
  
  void mm_map_frag(const mm_idx_t *mi, int n_segs, const int *qlens, const char **seqs, int *n_regs, mm_reg1_t **regs, mm_tbuf_t *b, const mm_mapopt_t *opt, const char *qname);
  
