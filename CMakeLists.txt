@@ -3,6 +3,15 @@ cmake_minimum_required(VERSION 3.10)
 project(minimap2 VERSION 2.24.0 LANGUAGES C)
 enable_testing()
 
+if (NOT WIN32)
+  add_compile_options(
+    # Match the warning options in the Makefile.
+    -Wall
+    # Always enable assert() macros.
+    -UNDEBUG
+  )
+endif()
+
 option(ONT_MM2_EXE "Build minimap2 exe" ON)
 
 # set default build type to release
